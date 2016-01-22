@@ -10,7 +10,11 @@
 #include "constantes.h"
 #include <string.h>
 
-typedef struct
+
+// Jeu : PONG . Code créé par GENDARME Thibaut et REUTER faustine le 08/2015 //
+                           // Etat : Incomplet //
+
+typedef struct  //Structure gestion des inputs du clavier et de la souris
 {
     char key[SDLK_LAST];
     int mousex,mousey;
@@ -19,7 +23,7 @@ typedef struct
         char quit;
 }Input;
 
-typedef struct
+typedef struct      // Structure des coordonnées et du vecteur de déplacement de la balle
 {
     int x,y;
     double x_vitesse,y_vitesse;
@@ -36,15 +40,16 @@ void SpeedBall(Ball *ball,int pos,int j);
 
 int main (int argc, char *argv[])
 {
-
+    //Variables du main
     SDL_Surface *screen=NULL, *border_menu_up=NULL, *border_menu_down=NULL,*title=NULL;
     SDL_Event event;
     Input in;
     int menu_refresh=1;
+    //
 
-    SDL_Init(SDL_INIT_VIDEO);
-    SDL_WM_SetCaption("Pong v1.0.0",NULL);
-    screen = SDL_SetVideoMode(LARGEUR_FENETRE, HAUTEUR_FENETRE, 32, SDL_HWSURFACE|SDL_DOUBLEBUF);
+    SDL_Init(SDL_INIT_VIDEO); //Initialiation de la SDL
+    SDL_WM_SetCaption("Pong v1.0.0",NULL); //Nom de la fenetre
+    screen = SDL_SetVideoMode(LARGEUR_FENETRE, HAUTEUR_FENETRE, 32, SDL_HWSURFACE|SDL_DOUBLEBUF); //Parametre de la fenetre (sortie principale)
 
     border_menu_up = SDL_CreateRGBSurface(SDL_HWSURFACE,LARGEUR_FENETRE,HAUTEUR_FENETRE/128, 32,0,0,0,0);
     border_menu_down = SDL_CreateRGBSurface(SDL_HWSURFACE,LARGEUR_FENETRE,HAUTEUR_FENETRE/128, 32,0,0,0,0);
@@ -54,15 +59,15 @@ int main (int argc, char *argv[])
     SDL_FillRect(border_menu_up,NULL,SDL_MapRGB(border_menu_up->format,255,255,255));
     SDL_FillRect(border_menu_down,NULL,SDL_MapRGB(border_menu_down->format,255,255,255));
 
-
+    //Affichage du menu
     Blit(title,screen,(screen->w /2) - (title->w /2),20);
     Blit(border_menu_up,screen,1,3);
     Blit(border_menu_down,screen,1,HAUTEUR_FENETRE - 9);
+    //
 
+    memset(&in,0,sizeof(in)); // Reset du tableau des input du clavier
 
-    memset(&in,0,sizeof(in));
-
-    while(!in.quit)
+    while(!in.quit) //Boucle du menu , sortie losque la croix de fermeture d'une fenetre est préssé
     {
         if(menu_refresh==0)
         {
@@ -71,12 +76,12 @@ int main (int argc, char *argv[])
             Blit(border_menu_up,screen,1,3);
             Blit(border_menu_down,screen,1,HAUTEUR_FENETRE - 9);
         }
-        UpdateEvent(&in);
+        UpdateEvent(&in); //Fonction de mise a jour du tableau qui detecte les touche enfoncé ou non
         if (in.key[SDLK_KP1])
         {
             menu_refresh=0;
             in.key[SDLK_KP1]=0;
-            if(Jeu_1v1(screen)==557)
+            if(Jeu_1v1(screen)==557) // La ft Jeu_1v1() retourne 557 dans un cas précis pour quitter et revenir au menu
             {
                 in.quit=1;
             }
@@ -84,14 +89,15 @@ int main (int argc, char *argv[])
         }
 
 
-        SDL_Flip(screen);
+        SDL_Flip(screen); //Mise a jour des nouveau blit sur l'ecran
     }
 
-
+    //Liberation de la mémoire utilisé par les variables graphique
     SDL_FreeSurface(border_menu_up);
     SDL_FreeSurface(border_menu_down);
     SDL_FreeSurface(title);
     SDL_Quit();
+    //
 
     return 0;
 }
@@ -135,7 +141,7 @@ event.button.button!=SDL_BUTTON_WHEELDOWN)
 	}
 }
 
-int Blit(SDL_Surface* src,SDL_Surface* dst,int x,int y)
+int Blit(SDL_Surface* src,SDL_Surface* dst,int x,int y) //Fonction qui simplifie le blit
 {
     SDL_Rect R;
     R.x = x;
@@ -143,7 +149,7 @@ int Blit(SDL_Surface* src,SDL_Surface* dst,int x,int y)
     R.w = R.h = 0;
     return SDL_BlitSurface(src,NULL,dst,&R);
 }
-int Jeu_1v1(SDL_Surface* screen)
+int Jeu_1v1(SDL_Surface* screen) // Fonction du jeu
 {
     SDL_Surface *j1=NULL,*j2=NULL,*border_up=NULL,*border_down=NULL,*ball=NULL;
     Input in;
@@ -236,29 +242,30 @@ int Jeu_1v1(SDL_Surface* screen)
         {
             in.quit=1;
         }
-
+        // Reset de lecran (remplissage de noir)
         SDL_FillRect(screen,NULL,SDL_MapRGB(screen->format,0,0,0));
-
+        // Affichage  de tous les objets en jeu ( balle , joueurs ...)
         Blit(j1,screen,x_j1,y_j1);
         Blit(j2,screen,x_j2,y_j2);
         Blit(border_up,screen,1,6);
         Blit(border_down,screen,1,HAUTEUR_FENETRE - 12);
         Blit(ball,screen,mvt_ball.x,mvt_ball.y);
-
-
+        //
+        // Mise a jour de l'ecran
         SDL_Flip(screen);
     }
-
+    // Liberation de la memoire
     SDL_FreeSurface(j1);
     SDL_FreeSurface(j2);
     SDL_FreeSurface(border_up);
     SDL_FreeSurface(border_down);
     SDL_FreeSurface(ball);
+    //
 
 
 
 }
-
+//Fonction de gestion des hitbox (bordure + joueurs)
 void Mvt_ball(Ball *ball,SDL_Surface *balle,SDL_Surface *border_up,SDL_Surface *border_down,SDL_Surface *j1,SDL_Surface *j2,int x_j1,int y_j1,int x_j2,int y_j2)
 {
     int check_position=0,j=0;
@@ -311,7 +318,7 @@ void Mvt_ball(Ball *ball,SDL_Surface *balle,SDL_Surface *border_up,SDL_Surface *
     }
 }
 
-
+//Gestion de la vitesse x et y en fonction du rebond sur le joueur
 void SpeedBall(Ball *ball,int pos,int j)
 {
     //PARTIE HAUTE DU JOUEUR 1
